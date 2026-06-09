@@ -29,13 +29,56 @@ async function run() {
     await client.connect();
    const database = client.db("hireloop_db")
    const jobCollection = database.collection("job")
+   const companyCollection =  database.collection("company")
+   
 
+   app.get("/api/jobs" , async(req,res)=>{
+        const query = {} ;
+        if(req.query.companyId){
+          query.companyId = req.query.companyId;
+        }
+
+        if(req.query.status){
+          query.status =  req.query.status
+        }
+         const cursor = jobCollection.find(query);
+         const result = await cursor.toArray();
+         res.send(result)
+    })
    
    app.post("/api/jobs" , async(req,res)=>{
          const job = req.body ;
          const result = await  jobCollection.insertOne(job);
          res.send(result)
    })
+
+  //  company related api post
+   app.post("/api/companies", async (req, res) => {
+  try {
+    const company = req.body;
+    // মঙ্গোডিবি কালেকশনে ডাটা ইনসার্ট করা হচ্ছে
+    const result = await companyCollection.insertOne(company);
+    res.status(201).send(result);
+  } catch (error) {
+    console.error("Express Error:", error);
+    res.status(500).send({ success: false, message: "Database insertion failed" });
+  }
+});  
+
+// compani get api
+ app.get("/api/my/companies" , async(req,res)=>{
+        const query = {} ;
+        if(req.query.recruiterId){
+          query.recruiterId = req.query.recruiterId;
+        }
+
+        if(req.query.status){
+          query.status =  req.query.status
+        }
+         const cursor = companyCollection.find(query);
+         const result = await cursor.toArray();
+         res.send(result)
+    })
 
 
     await client.db("admin").command({ ping: 1 });
